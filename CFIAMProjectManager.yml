@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creating an IAM User For Project Manager
+
+Resources:
+  myUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: Test-Projectmanager 
+      LoginProfile: 
+        Password: hello-Projectmanager-12345.
+        PasswordResetRequired: true 
+      Path: '/'
+      Groups: 
+          - test-management
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess 
+        

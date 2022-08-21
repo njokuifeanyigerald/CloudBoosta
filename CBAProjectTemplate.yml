@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Provisioning of 2 EC2 Instances within a Custom Network via Cloudformation
+
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 10.7.0.0/16
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      InstanceTenancy: default
+      Tags: 
+        - Key: Name
+          Value: CBAProjectVPC
+
+  PublicSubnet:
+      Type: AWS::EC2::Subnet
+      Properties: 
+        AvailabilityZone: eu-central-1a
+        CidrBlock: 10.7.1.0/24
+        MapPublicIpOnLaunch: true
+        Tags: 
+          - Key: Name
+            Value: ProjectPublicSubnet01
+        VpcId: !Ref VPC
+
+  PrivateSubnet:
+      Type: AWS::EC2::Subnet
+      Properties: 
+        AvailabilityZone: eu-central-1a
+        CidrBlock: 10.7.2.0/24
+        MapPublicIpOnLaunch: false
+        Tags: 
+          - Key: Name
+            Value: ProjectPrivateSubnet01
+        VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: ProjectPublicRouteTable
+      VpcId: !Ref VPC
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: ProjectPrivateRouteTable
+      VpcId: !Ref VPC
+
+  PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+  # security group
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Application
+      GroupName: Web SG
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: ProjectSG
+      VpcId: !Ref VPC
+
+  InternetGateWay:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: ProjectIGW 
+
+  InternetGateWayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref InternetGateWay
+      VpcId: !Ref VPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateWay
+      RouteTableId: !Ref PublicRouteTable
+
+  WebInstanceA:
+      Type: AWS::EC2::Instance
+      Properties: 
+        BlockDeviceMappings: 
+          - DeviceName: /dev/xvda
+            Ebs: 
+              VolumeType: gp3
+              Iops: 3000
+              DeleteOnTermination: true
+              VolumeSize: 8
+        ImageId: ami-0c956e207f9d113d5
+        InstanceType: t2.micro
+        KeyName: soso
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+        SubnetId: !Ref PublicSubnet
+        Tags: 
+          - Key: Name
+            Value: ProjectInstance01
+
+  WebInstanceB:
+    Type: AWS::EC2::Instance
+    Properties: 
+      BlockDeviceMappings: 
+        - DeviceName: /dev/xvda
+          Ebs: 
+            VolumeType: gp3
+            Iops: 3000
+            DeleteOnTermination: true
+            VolumeSize: 8
+      ImageId: ami-0c956e207f9d113d5
+      InstanceType: t2.micro
+      KeyName: soso
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      SubnetId: !Ref PrivateSubnet
+      Tags: 
+        - Key: Name
+          Value: ProjectInstance02
+
+
+ 
+
+
+
+
+
+
+
+

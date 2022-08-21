@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creating an IAM User For Interns
+
+Resources:
+  MyUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: Test-Intern 
+      LoginProfile:
+        Password: hello-interns-12345.
+        PasswordResetRequired: true 
+      Path: '/'
+      Groups: 
+          - test-interns
+      ManagedPolicyArns: 
+        - arn:aws:iam::318867684519:policy/ListBucket
+        
